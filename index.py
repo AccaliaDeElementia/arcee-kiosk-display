@@ -38,7 +38,7 @@ class Kiosk(wx.Frame):
 
 
     def chooseFile(self):
-        imgs = glob('/home/accalia/Pictures/*.png')
+        imgs = glob('~/Pictures/*.png')
         choice = randrange(len(imgs))
         self.filepath = imgs[choice]
         self.onView()
