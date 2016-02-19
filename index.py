@@ -1,7 +1,7 @@
 from glob import glob
 from random import randrange
 from time import localtime, strftime
-
+from os.path import expanduser
 import wx
 
 class Kiosk(wx.Frame):
@@ -29,7 +29,7 @@ class Kiosk(wx.Frame):
     def createTimers(self):
         self.cycleTimer = wx.Timer(self, 100);
         self.DateTimer = wx.Timer(self, 200);
-        self.cycleTimer.Start(5000);
+        self.cycleTimer.Start(6000);
         self.DateTimer.Start(1000);
         wx.EVT_TIMER(self, 100, lambda x: self.chooseFile())
         wx.EVT_TIMER(self, 200, lambda x: self.setTime())
@@ -38,14 +38,14 @@ class Kiosk(wx.Frame):
 
 
     def chooseFile(self):
-        imgs = glob('~/Pictures/*.png')
+        imgs = glob(expanduser('~/Pictures/*.png'))
         choice = randrange(len(imgs))
         self.filepath = imgs[choice]
         self.onView()
 
     def setTime(self):
         now = localtime();
-        timeString = strftime('%H:%M:%S', now)
+        timeString = strftime('%H:%M', now)
         self.TimeText.SetLabel(timeString)
         for shadow in self.TimeShadow:
             shadow.SetLabel(timeString)
@@ -60,11 +60,11 @@ class Kiosk(wx.Frame):
         self.TimeFont = wx.Font(72, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.TimeShadow = []
         for r, t in [(-1,-1),(-1,2),(2,-1),(2,2)]:
-            shadow = wx.StaticText(self.panel, label='23:00:00', pos=(right+r, top+t))
+            shadow = wx.StaticText(self.panel, label='', pos=(right+r, top+t))
             shadow.SetForegroundColour((0,0,0))
             shadow.SetFont(self.TimeFont)
             self.TimeShadow.append(shadow)
-        self.TimeText = wx.StaticText(self.panel, label='23:00:00', pos=(right, top))
+        self.TimeText = wx.StaticText(self.panel, label='', pos=(right, top))
         self.TimeText.SetForegroundColour((255,255,255))
         self.TimeText.SetFont(self.TimeFont)
 
@@ -84,7 +84,8 @@ class Kiosk(wx.Frame):
 
 
     def createWidgets(self):
-        self.panel.SetBackgroundColour(wx.Colour(0,0,0))
+	self.SetBackgroundColour((0,0,0))
+        self.panel.SetBackgroundColour((0,0,0))
 
         # Create initial, blank, image
         width,height = self.GetSize()
@@ -98,13 +99,6 @@ class Kiosk(wx.Frame):
         self.createDate()
 
         # Create sizer to center main image
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(wx.StaticText(self.panel, wx.ID_ANY, label=''), 1, wx.ALL|wx.EXPAND)
-        self.mainSizer.Add(self.imageCtrl, 1, wx.ALL|wx.EXPAND|wx.CENTER, 0)
-        self.mainSizer.Add(wx.StaticText(self.panel, wx.ID_ANY, label=''), 1, wx.ALL|wx.EXPAND)
-        self.panel.SetSizer(self.mainSizer)
-        self.mainSizer.Fit(self)
-
         self.panel.Layout()
 
 
@@ -125,12 +119,15 @@ class Kiosk(wx.Frame):
         img = img.Scale(W,H)
 
         self.imageCtrl.SetBitmap(wx.BitmapFromImage(img))
+	
+	left = width / 2 - W / 2
+	top = height / 2 - H / 2
 
-        #refresh the sizer to maintain image center
-        self.mainSizer.Fit(self)
+	self.imageCtrl.SetPosition((left, top ))
         self.panel.Refresh()
 
 if __name__ == '__main__':
     app = wx.App()
     Kiosk(None, title='Kiosk')
     app.MainLoop()
+
